@@ -1,10 +1,10 @@
 using Iterators
 
-function metropolis(delta, temp)
+function metropolis_value(delta, temp)
   return exp(-1*delta/temp)
 end
 
-function edgecol(x, size)
+function edge_col(x, size)
   # Initiate array storing result
   res = Float64[]
   # For each bin in the strata
@@ -15,12 +15,12 @@ function edgecol(x, size)
   return res
 end
 
-function edges(df, size)
+function compute_edges(df, size)
   # Pre-allocating result Array
   res = Array(Float64, size + 1, ncol(df))
   # For each column
   for col = [1:ncol(df)]
-    res[:,col] = edgecol(df[col], size)
+    res[:,col] = edge_col(df[col], size)
   end
 
   return res
@@ -37,19 +37,20 @@ function clhs(
   )
 
   # Initiate Metropolis value
-  metropolis = metropolis(0, temp)
+  metropolis = metropolis_value(0, temp)
   # Number of individuals in the data set
   n_data = nrow(x)
 
   # Edge of the strata
-  continuous_strata = edges(x, size)
+  continuous_strata = compute_edges(x, size)
 
   # Data correlation
   cor_mat <- cor(x)
 
   # initialise, pick randomly
-  n_remainings <- n_data - size # number of individuals remaining unsampled
-  i_sampled <- sample(1:n_data, size = size, replace = FALSE) # individuals randomly chosen
+  n_remainings = n_data - size # number of individuals remaining unsampled
+  i_sampled = sample(1:nrow(df), size) # individuals randomly chosen
+
   i_unsampled <- setdiff(1:n_data, i_sampled) # individuals remaining unsampled
   data_continuous_sampled <- data_continuous[i_sampled, , drop = FALSE] # sampled continuous data
 
