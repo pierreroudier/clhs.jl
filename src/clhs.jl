@@ -1,5 +1,29 @@
+using Iterators
+
 function metropolis(delta, temp)
   return exp(-1*delta/temp)
+end
+
+function edgecol(x, size)
+  # Initiate array storing result
+  res = Float64[]
+  # For each bin in the strata
+  for q = linspace(0, 1, size + 1)
+    push!(res, quantile(x, q))
+  end
+  # Return 1D-Array
+  return res
+end
+
+function edges(df, size)
+  # Pre-allocating result Array
+  res = Array(Float64, size + 1, ncol(df))
+  # For each column
+  for col = [1:ncol(df)]
+    res[:,col] = edgecol(df[col], size)
+  end
+
+  return res
 end
 
 function clhs(
@@ -12,20 +36,16 @@ function clhs(
   length.cycle = 10 # Number of cycles done at each constant temperature value
   )
 
-  metropolis = metropolis(0, temp) # Initial Metropolis value
-  n_data = nrow(x) # Number of individuals in the data set
+  # Initiate Metropolis value
+  metropolis = metropolis(0, temp)
+  # Number of individuals in the data set
+  n_data = nrow(x)
 
   # Edge of the strata
-  continuous_strata <- apply(
-    data_continuous,
-    2,
-    function(x) {
-      quantile(x, probs = seq(0, 1, length.out = size + 1), na.rm = TRUE)
-    }
-  )
+  continuous_strata = edges(x, size)
 
   # Data correlation
-  cor_mat <- cor(data_continuous, use = "complete.obs")
+  cor_mat <- cor(x)
 
   # initialise, pick randomly
   n_remainings <- n_data - size # number of individuals remaining unsampled
