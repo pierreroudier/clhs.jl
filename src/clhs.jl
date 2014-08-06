@@ -1,27 +1,29 @@
 using Iterators
+using StatsBase
+using DataFrames
 
-function sample(x, size = 1, replace = false)
-
-  if (size > length(x)) & (replace == false)
-    error(" cannot take a sample larger than the population when 'replace = false'")
-  end
-
-  res = []
-	available_idx = [1:length(x)]
-
-  for i = 1:size
-    # Pick randomly an index in the available indexes
-    idx = convert( Int64, ceil(length(available_idx) * rand()) )
-    # Append selected index to result array
-    res = [res, x[available_idx[idx]]]
-    # If no replacement, we remove picked index from available indexes
-    if !replace
-      splice!(available_idx, idx)
-    end
-  end
-
-  return res
-end
+# function sample(x, size = 1, replace = false)
+#
+#   if (size > length(x)) & (replace == false)
+#     error(" cannot take a sample larger than the population when 'replace = false'")
+#   end
+#
+#   res = []
+# 	available_idx = [1:length(x)]
+#
+#   for i = 1:size
+#     # Pick randomly an index in the available indexes
+#     idx = convert( Int64, ceil(length(available_idx) * rand()) )
+#     # Append selected index to result array
+#     res = [res, x[available_idx[idx]]]
+#     # If no replacement, we remove picked index from available indexes
+#     if !replace
+#       splice!(available_idx, idx)
+#     end
+#   end
+#
+#   return res
+# end
 
 function metropolis_value(delta, temp)
   return exp(-1*delta/temp)
@@ -72,7 +74,7 @@ function clhs(
 
   # initialise, pick randomly
   n_remainings = n_data - size # number of individuals remaining unsampled
-  i_sampled = sample(1:nrow(df), size) # individuals randomly chosen
+  i_sampled = sample([1:nrow(x)], size) # individuals randomly chosen
 
   i_unsampled <- setdiff(1:n_data, i_sampled) # individuals remaining unsampled
   data_continuous_sampled <- data_continuous[i_sampled, , drop = FALSE] # sampled continuous data
