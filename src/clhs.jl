@@ -10,7 +10,7 @@ function edge_col(x, size)
   # Initiate array storing result
   res = Float64[]
   # For each bin in the strata
-  for q = linspace(0, 1, size + 1)
+  for q in linspace(0, 1, size + 1)
     push!(res, quantile(x, q))
   end
   # Return 1D-Array
@@ -21,7 +21,7 @@ function compute_edges(df, size)
   # Pre-allocating result Array
   res = Array(Float64, size + 1, ncol(df))
   # For each column
-  for col = [1:ncol(df)]
+  for col in 1:ncol(df)
     res[:,col] = edge_col(df[col], size)
   end
 
@@ -85,8 +85,8 @@ function clhs(
   # initialise, pick randomly
   n_remainings = n_data - size # number of individuals remaining unsampled
 
-  i_sampled = sample([1:nrow(x)], size, false) # individuals (rows) randomly chosen
-  i_unsampled = find( [in(i, i_sampled) for i in [1:n_data]] )
+  i_sampled = sample(1:nrow(x), size, false) # individuals (rows) randomly chosen
+  i_unsampled = find( [in(i, i_sampled) for i in 1:n_data] )
 
   data_continuous = x
 
@@ -110,18 +110,17 @@ function clhs(
     previous$i_unsampled <- i_unsampled
     previous$delta_obj_continuous <- delta_obj_continuous
 
-    if (runif(1) < 0.5) {
+    if rand() < 0.5
       # pick a random sampled point and random unsampled point
-      idx_unsampled <- sample(1:n_remainings, size = 1)
-      idx_sampled <- sample(1:size, size = 1)
+      idx_unsampled = sample(1:n_remainings)
+      idx_sampled = sample(1:size)
       # Swap these:
       i_sampled[idx_sampled] <- i_unsampled[idx_unsampled]
       i_unsampled[idx_unsampled] <- i_sampled[idx_sampled]
 
       # creating new data sampled
       data_continuous_sampled <- data_continuous[i_sampled, , drop = FALSE]
-    }
-    else {
+    else
       # remove the worse sampled & resample
       worse <- max(delta_obj_continuous)
       i_worse <- which(delta_obj_continuous == worse)
@@ -135,7 +134,7 @@ function clhs(
 
       # creating new data sampled
       data_continuous_sampled <- data_continuous[i_sampled, , drop = FALSE]
-    }
+    end
 
     # calc obj
     res <- .lhs_obj(size = size, data_continuous_sampled = data_continuous_sampled, data_factor_sampled = data_factor_sampled, continuous_strata = continuous_strata, cor_mat = cor_mat, factor_obj = factor_obj, weights = weights)
