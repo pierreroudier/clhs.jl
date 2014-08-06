@@ -1,5 +1,28 @@
 using Iterators
 
+function sample(x, size = 1, replace = false)
+
+  if (size > length(x)) & (replace == false)
+    error(" cannot take a sample larger than the population when 'replace = false'")
+  end
+
+  res = []
+	available_idx = [1:length(x)]
+
+  for i = 1:size
+    # Pick randomly an index in the available indexes
+    idx = convert( Int64, ceil(length(available_idx) * rand()) )
+    # Append selected index to result array
+    res = [res, x[available_idx[idx]]]
+    # If no replacement, we remove picked index from available indexes
+    if !replace
+      splice!(available_idx, idx)
+    end
+  end
+
+  return res
+end
+
 function metropolis_value(delta, temp)
   return exp(-1*delta/temp)
 end
@@ -45,7 +68,7 @@ function clhs(
   continuous_strata = compute_edges(x, size)
 
   # Data correlation
-  cor_mat <- cor(x)
+  cor_mat = cor(x)
 
   # initialise, pick randomly
   n_remainings = n_data - size # number of individuals remaining unsampled
