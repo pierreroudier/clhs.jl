@@ -28,6 +28,39 @@ function compute_edges(df, size)
   return res
 end
 
+function objective(
+  size,
+  data_continuous_sampled,
+  continuous_strata,
+  cor_mat
+  )
+
+  # Continuous variables
+  #
+  n_cont_variables <- ncol(data_continuous_sampled)
+
+  cont_data_strata <- lapply(1:n_cont_variables, function(i) list(data_continuous_sampled[, i], continuous_strata[, i]) )
+  cont_obj_sampled <- lapply(cont_data_strata, function(x) hist(x[[1]], breaks = x[[2]], plot = FALSE)$counts)
+  cont_obj_sampled <- matrix(unlist(cont_obj_sampled), ncol = n_cont_variables, byrow = FALSE)
+
+  delta_obj_continuous <- rowSums(abs(cont_obj_sampled - 1))
+
+  # Correlation of continuous data
+  #
+  cor_sampled <- cor(data_continuous_sampled)
+  cor_sampled[is.na(cor_sampled)] <- 1 # when there's only one observation, cor() throws NAs - we set these to 1
+
+  delta_obj_cor <- sum(abs(cor_mat - cor_sampled))
+
+  # Objective function
+  #
+  obj <- sum(delta_obj_continuous) + delta_obj_cor
+
+  # Returning results
+  #
+  list(obj = obj, delta_obj_continuous = delta_obj_continuous, delta_obj_cor = delta_obj_cor)
+end
+
 function clhs(
   x, # a DataFrame
   size, # Number of samples you want
@@ -51,10 +84,13 @@ function clhs(
 
   # initialise, pick randomly
   n_remainings = n_data - size # number of individuals remaining unsampled
-  i_sampled = sample([1:nrow(x)], size, false) # individuals (rows) randomly chosen
 
-  i_unsampled <- setdiff(1:n_data, i_sampled) # individuals remaining unsampled
-  data_continuous_sampled <- data_continuous[i_sampled, , drop = FALSE] # sampled continuous data
+  i_sampled = sample([1:nrow(x)], size, false) # individuals (rows) randomly chosen
+  i_unsampled = find( [in(i, i_sampled) for i in [1:n_data]] )
+
+  data_continuous = x
+
+  data_continuous_sampled = data_continuous[i_sampled,:] # sampled continuous data
 
   # objective function
   res <- .lhs_obj(size = size, data_continuous_sampled = data_continuous_sampled, data_factor_sampled = data_factor_sampled, continuous_strata = continuous_strata, cor_mat = cor_mat, factor_obj = factor_obj, weights = weights)
